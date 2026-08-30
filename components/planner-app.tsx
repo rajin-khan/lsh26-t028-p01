@@ -298,6 +298,8 @@ function TimelineBar({
 }) {
   const left = `${(job.start / MINUTES_PER_DAY) * 100}%`;
   const width = `${((job.end - job.start) / MINUTES_PER_DAY) * 100}%`;
+  const initials = job.name.trim().split(/\s+/u).filter(Boolean)
+    .map((word) => Array.from(word)[0]).join("").toUpperCase();
   const detail = text.jobDetail
     .replace("{start}", minuteToTime(job.start))
     .replace("{end}", minuteToTime(job.end))
@@ -310,7 +312,7 @@ function TimelineBar({
       role="img"
       aria-label={detail}
     >
-      <span>{job.name}</span>
+      <span>{initials}</span>
     </div>
   );
 }
