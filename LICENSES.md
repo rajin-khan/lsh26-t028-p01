@@ -29,3 +29,7 @@ CurrentJabe was reviewed as pre-event reference material for Bangladesh outage l
 ## AI assistance
 
 OpenAI Codex assisted with requirement comparison, domain modeling, implementation, interface design, tests, documentation, and browser QA under the team lead's direction. AI use is disclosed in `evaluation-manifest.json`; the team verifies the result with deterministic tests, TypeScript, a production build, and browser checks.
+
+## Original-work statement
+
+Everything not declared in this file or `EVENT.md` was created by the registered team during the event window.

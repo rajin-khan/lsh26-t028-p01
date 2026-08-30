@@ -5,7 +5,7 @@ Enter today's power cuts and jobs. KajChole places jobs on a 24-hour timeline, k
 - Team: GROCERYBOIX, `LSH26-T028`
 - Problem: `P01`, Load-Shedding Window Planner
 - Repository: [rajin-khan/lsh26-t028-p01](https://github.com/rajin-khan/lsh26-t028-p01)
-- Live URL: pending deployment
+- Live URL: [kajchole.vercel.app](https://kajchole.vercel.app/)
 - Event start code: `LSH26-8490-C900`
 
 ## Run it
@@ -130,4 +130,4 @@ A next version could let users set working hours, import JSON cases, and model s
 
 OpenAI Codex assisted with the requirement audit, domain model, deterministic scheduler, bilingual interface, tests, documentation, and browser QA under the team lead's direction. The team verifies the output with the checks above. Pre-event materials are disclosed in `evaluation-manifest.json`; third-party material is listed in `LICENSES.md`.
 
-The optional recording script is in `docs/DEMO.md`. Before final submission, the team lead must add the deployed URL here and in the manifest, make the repository public, and copy the exact judged commit SHA into the submission form. Deployment is intentionally not part of this local review.
+The optional recording script is in `docs/DEMO.md`. Before final submission, make the repository public, check the live URL in a private browser window, and copy the exact 40-character judged commit SHA into the submission form. Confirm that Vercel's production deployment uses that same commit. Keep the repository public and the app live until results are announced.

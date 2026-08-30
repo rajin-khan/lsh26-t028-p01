@@ -2,7 +2,7 @@
   "team_id": "LSH26-T028",
   "problem_id": "P01",
   "repository_name": "lsh26-t028-p01",
-  "live_url": "",
+  "live_url": "https://kajchole.vercel.app/",
   "demo_video_url_optional": "",
   "event_start_code": "LSH26-8490-C900",
   "repository_created_before_release": true,
@@ -73,8 +73,7 @@
     "Jobs must finish within the 00:00 to 24:00 planning day; jobs that cannot fit are shown as unplaced.",
     "Generator minutes represent scheduled generator-job duration, not fuel volume or cost.",
     "Published and judge-supplied cases require manual entry; there is no JSON upload and shop hours metadata do not limit placement.",
-    "Longest-first placement is deterministic but does not guarantee optimal packing.",
-    "The live URL must be inserted after deployment."
+    "Longest-first placement is deterministic but does not guarantee optimal packing."
   ],
   "ai_tools_used": [
     {
@@ -84,5 +83,5 @@
     }
   ],
   "licenses_file": "LICENSES.md",
-  "declaration": "This record describes the local review state truthfully to the best of the team's knowledge. The live URL remains empty because deployment is pending. The team must add it and verify public access before final submission."
+  "declaration": "The information above is complete and truthful to the best of the team's knowledge. Pre-event material, third-party material, AI assistance and team contributions are disclosed. The team will preserve repository history and keep the submitted repository public and the live application available until results are announced."
 }
