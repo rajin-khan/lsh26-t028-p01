@@ -1,0 +1,87 @@
+{
+  "team_id": "LSH26-T028",
+  "problem_id": "P01",
+  "repository_name": "lsh26-t028-p-1",
+  "live_url": "",
+  "demo_video_url_optional": "",
+  "event_start_code": "LSH26-8490-C900",
+  "repository_created_before_release": true,
+  "pre_event_materials": [
+    "A private empty GitHub repository created before release; its first event-work commit contains EVENT.md.",
+    "CurrentJabe was reviewed for Bangladesh outage-window terminology, overnight time handling, bilingual electricity copy, and accessible forms. KajChole uses a newly written scheduler, product model, brand, layout, and interface.",
+    "The GridGenius university project was reviewed for Bangladesh energy-planning context and time-based data presentation. Its models, prediction API, RAG assistant, datasets, brand, and frontend code are not included.",
+    "The pnpm lockfile and minimal Next.js, React, and TypeScript versions match the already-installed sibling submission and required zero new package downloads."
+  ],
+  "sample_data": {
+    "loads_published_fixture": false,
+    "method": "Built-in demo state in components/planner-app.tsx",
+    "reset_instructions": "Open the app and select Load demo in the header. This restores two outage windows and four jobs without an account or network request."
+  },
+  "problem_solving_method": "KajChole normalizes all outage windows onto a 1,440-minute day, splits windows that cross midnight, and merges overlaps. A deterministic longest-first scheduler protects grid-dependent jobs first, places generator and no-power jobs into outage time where possible, prevents job overlap, and reports work that cannot fit. Generator minutes are derived directly from the current job list, so edits and removals update the total immediately.",
+  "requirements": {
+    "R1": {
+      "status": "complete",
+      "evidence": "The Set up today panel accepts multiple start and end times in components/planner-app.tsx. normalizeOutageWindows in lib/scheduler.ts maps them onto the aligned 24-hour timeline."
+    },
+    "R2": {
+      "status": "complete",
+      "evidence": "The Add a job form and editable Job queue in components/planner-app.tsx capture name, duration, and grid, generator, or no-power need."
+    },
+    "R3": {
+      "status": "complete",
+      "evidence": "buildDayPlan in lib/scheduler.ts produces non-overlapping placements and blocks grid jobs from outage intervals. The Today's power map and Completed plan render the result in components/planner-app.tsx."
+    },
+    "R4": {
+      "status": "complete",
+      "evidence": "buildDayPlan calculates generatorMinutes from the current job list. The live Generator minutes metric in components/planner-app.tsx updates after every add, edit, or removal."
+    }
+  },
+  "team_members": [
+    {
+      "registered_name": "Rajin Dash Khan",
+      "github_username": "rajin-khan",
+      "major_contribution": "Team leadership, problem selection, prior-project handoff, product direction, repository setup, and final submission ownership.",
+      "evidence_paths_or_commits": [
+        "HACKATHON_CONTEXT.md",
+        "docs/solution-fit.md",
+        "89f4093",
+        "30df1c2"
+      ]
+    },
+    {
+      "registered_name": "Saumik Saha Kabbya",
+      "github_username": "Kabbya04",
+      "major_contribution": "Contribution record pending team confirmation before the judged commit.",
+      "evidence_paths_or_commits": []
+    },
+    {
+      "registered_name": "Samiyeel Alim Binaaf",
+      "github_username": "Pronaaf2k",
+      "major_contribution": "Contribution record pending team confirmation before the judged commit.",
+      "evidence_paths_or_commits": []
+    }
+  ],
+  "major_design_decisions": [
+    "Use a deterministic client-side scheduler because P01 supplies every input and does not require prediction.",
+    "Protect longer grid jobs first because they have the fewest legal placements.",
+    "Prefer outage windows for generator and no-power jobs so the plan uses grid downtime productively.",
+    "Keep all four required interactions on one screen so judges can verify them without navigation.",
+    "Store the working plan in browser storage so the live demo has no account, database, or API dependency."
+  ],
+  "known_limitations": [
+    "The planner creates one non-overlapping job stream and does not model parallel workers or machines.",
+    "Jobs must finish within the 00:00 to 24:00 planning day; jobs that cannot fit are shown as unplaced.",
+    "Generator minutes represent requested generator-job duration, not fuel volume or cost.",
+    "The live URL must be inserted after deployment.",
+    "Saumik Saha Kabbya and Samiyeel Alim Binaaf need final P01 contribution evidence before submission."
+  ],
+  "ai_tools_used": [
+    {
+      "tool": "OpenAI Codex",
+      "used_for": "Requirement comparison, domain modeling, scheduling implementation, bilingual interface drafting, documentation, and test generation.",
+      "how_output_was_verified": "The team reviewed the product scope against all four P01 requirements. Automated scheduler tests cover time parsing, overnight and overlapping outages, grid conflict avoidance, generator totals, non-overlap, and unplaced jobs. Type checking, production build, and browser-based functional and responsive tests are run before the judged commit."
+    }
+  ],
+  "licenses_file": "LICENSES.md",
+  "declaration": "The information above is complete and truthful to the best of the team's knowledge. Pending member-contribution lines and the live URL will be replaced before the judged commit."
+}
