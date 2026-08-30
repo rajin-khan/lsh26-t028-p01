@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useEffect, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 
 import {
   buildDayPlan,
@@ -296,6 +297,28 @@ function TimelineBar({
   job: PlannedJob;
   text: (typeof copy)[Locale];
 }) {
+  const [tooltip, setTooltip] = useState<{ left: number; top: number; above: boolean } | null>(null);
+  useEffect(() => {
+    if (!tooltip) return;
+    const hide = () => setTooltip(null);
+    window.addEventListener("scroll", hide, true);
+    window.addEventListener("resize", hide);
+    return () => {
+      window.removeEventListener("scroll", hide, true);
+      window.removeEventListener("resize", hide);
+    };
+  }, [tooltip]);
+
+  function showTooltip(element: HTMLElement) {
+    const rect = element.getBoundingClientRect();
+    const above = rect.top > 100;
+    setTooltip({
+      left: Math.max(12, Math.min(rect.left, window.innerWidth - 272)),
+      top: above ? rect.top - 8 : rect.bottom + 8,
+      above,
+    });
+  }
+
   const left = `${(job.start / MINUTES_PER_DAY) * 100}%`;
   const width = `${((job.end - job.start) / MINUTES_PER_DAY) * 100}%`;
   const initials = job.name.trim().split(/\s+/u).filter(Boolean)
@@ -305,15 +328,36 @@ function TimelineBar({
     .replace("{end}", minuteToTime(job.end))
     .replace("{name}", () => job.name);
   return (
-    <div
+    <>
+    <button
+      type="button"
       className={`job-bar job-bar--${job.powerNeed}`}
       style={{ left, width }}
-      title={detail}
-      role="img"
       aria-label={detail}
+      onMouseEnter={(event) => showTooltip(event.currentTarget)}
+      onMouseLeave={() => setTooltip(null)}
+      onFocus={(event) => showTooltip(event.currentTarget)}
+      onBlur={() => setTooltip(null)}
+      onClick={(event) => showTooltip(event.currentTarget)}
+      onKeyDown={(event) => {
+        if (event.key === "Escape") setTooltip(null);
+      }}
     >
-      <span>{initials}</span>
-    </div>
+      <span aria-hidden="true">{initials}</span>
+    </button>
+    {tooltip ? createPortal(
+      <div
+        className="job-tooltip"
+        style={{ left: tooltip.left, top: tooltip.top }}
+        data-above={tooltip.above}
+        aria-hidden="true"
+      >
+        <strong>{job.name || text.job}</strong>
+        <span>{minuteToTime(job.start)} - {minuteToTime(job.end)} · {job.duration} {text.minutesShort}</span>
+      </div>,
+      document.body,
+    ) : null}
+    </>
   );
 }
 
