@@ -4,25 +4,25 @@ KajChole contains no copied template, UI kit, stock image, external icon set, ch
 
 ## Runtime dependencies
 
-| Material | Version | Licence | Use |
+| Material | Version | Licence and source | Use |
 | --- | --- | --- | --- |
-| Next.js | 16.2.11 | MIT | Application framework and production build |
-| React | 19.2.4 | MIT | Interface runtime |
-| React DOM | 19.2.4 | MIT | Browser rendering |
+| Next.js | 16.2.11 | [MIT](https://github.com/vercel/next.js/blob/v16.2.11/license.md) | Application framework and production build |
+| React | 19.2.4 | [MIT](https://github.com/facebook/react/blob/v19.2.4/LICENSE) | Interface runtime |
+| React DOM | 19.2.4 | [MIT](https://github.com/facebook/react/blob/v19.2.4/LICENSE) | Browser rendering |
 
 ## Development dependencies and tools
 
 | Material | Version | Licence | Use |
 | --- | --- | --- | --- |
-| TypeScript | 5.8.3 | Apache-2.0 | Strict type checking |
-| @types/node | 22.15.30 | MIT | Node.js type declarations |
-| @types/react | 19.1.8 | MIT | React type declarations |
-| @types/react-dom | 19.1.6 | MIT | React DOM type declarations |
-| pnpm | 10.28.2 | MIT | Package manager; packages were copied from the existing sibling workspace with zero downloads |
+| TypeScript | 5.8.3 | [Apache-2.0](https://github.com/microsoft/TypeScript/blob/v5.8.3/LICENSE.txt) | Strict type checking |
+| @types/node | 22.15.30 | [MIT](https://github.com/DefinitelyTyped/DefinitelyTyped/blob/master/LICENSE) | Node.js type declarations |
+| @types/react | 19.1.8 | [MIT](https://github.com/DefinitelyTyped/DefinitelyTyped/blob/master/LICENSE) | React type declarations |
+| @types/react-dom | 19.1.6 | [MIT](https://github.com/DefinitelyTyped/DefinitelyTyped/blob/master/LICENSE) | React DOM type declarations |
+| pnpm | 10.28.2 | [MIT](https://github.com/pnpm/pnpm/blob/v10.28.2/LICENSE) | Package manager; packages were copied from the existing sibling workspace with zero downloads |
 
 ## Event and reference material
 
-`EVENT.md`, the P01 requirements, scoring rules, start code, and manifest fields come from LofiStack Hackathon 2026 participant material.
+`EVENT.md`, the P01 requirements, scoring rules, start code, and manifest fields come from [LofiStack Hackathon 2026](https://live.hackathon.lofistack.com/) participant material and Submission Kit v2.2. They are used for this event submission; no separate licence was supplied. `EVENT.md` metadata existed before the build window, as recorded in that file.
 
 CurrentJabe was reviewed as pre-event reference material for Bangladesh outage language, overnight time handling, bilingual copy, and accessible form patterns. GridGenius was reviewed for Bangladesh energy-planning context and time-based information presentation. KajChole does not include their data, database, models, APIs, brands, maps, images, fonts, or source modules.
 

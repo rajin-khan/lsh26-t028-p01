@@ -18,8 +18,11 @@ type PlannerState = {
   jobs: Job[];
 };
 
+type FormError = "name" | "duration";
+type UndoMessage = "windowRemoved" | "jobRemoved" | "demoLoaded";
+
 type UndoState = PlannerState & {
-  message: string;
+  message: UndoMessage;
 };
 
 const STORAGE_KEY = "kajchole-planner-v1";
@@ -89,11 +92,12 @@ const copy = {
     productBn: "কাজচলে",
     descriptor: "Load-shedding work planner",
     language: "বাংলা",
+    languageAction: "Switch to Bangla",
     reset: "Load demo",
-    title: "Power goes. Work stays on plan.",
-    intro: "Enter today's cuts and jobs. KajChole builds a conflict-free day and counts every generator minute.",
-    planReady: "Ready to schedule",
-    planNeedsAttention: "Needs a quick fix",
+    title: "Plan work around power cuts.",
+    intro: "Enter today's cuts and jobs. See when each job fits and how many generator minutes the plan needs.",
+    planReady: "Plan ready",
+    planNeedsAttention: "Check the highlighted inputs",
     generatorMetric: "Generator minutes",
     cutsMetric: "Power cuts",
     jobsScheduled: "jobs scheduled",
@@ -149,8 +153,9 @@ const copy = {
     invalidDuration: "The duration must be a whole number from 1 to 1,440.",
     saved: "Saved in this browser",
     storageUnavailable: "Browser saving unavailable",
-    localNote: "No account, API, or official outage claim. Your plan stays on this device.",
+    localNote: "You supply the cut times. This is a work plan, not an official outage schedule. Saved plans stay in this browser.",
     outageDetail: "Power cut from {start} to {end}",
+    jobDetail: "{name}, {start} to {end}",
     windowRemoved: "Power-cut window removed.",
     jobRemoved: "Job removed.",
     demoLoaded: "Demo plan loaded.",
@@ -158,10 +163,10 @@ const copy = {
     restored: "Change restored.",
     adjustmentHint: "Try a shorter duration or a different power need.",
     howTitle: "How KajChole decides",
-    howBody: "It schedules the hardest constraint first, then fills outage time with work that can continue without the grid.",
+    howBody: "Longer grid jobs go first. Other jobs use cut windows where they fit, then any remaining time.",
     ruleGrid: "Grid jobs never overlap a cut.",
-    ruleGenerator: "Generator jobs count toward generator minutes.",
-    ruleNone: "No-power jobs can use cut time at no energy cost.",
+    ruleGenerator: "Only scheduled generator jobs count toward the total.",
+    ruleNone: "No-power jobs can run during cuts.",
     jobAdded: "Job added and plan recalculated.",
   },
   bn: {
@@ -170,11 +175,12 @@ const copy = {
     productBn: "কাজচলে",
     descriptor: "লোডশেডিং কাজের পরিকল্পনা",
     language: "English",
+    languageAction: "ইংরেজিতে দেখুন",
     reset: "ডেমো দেখুন",
-    title: "বিদ্যুৎ গেলেও, কাজ থাকে পরিকল্পনায়।",
-    intro: "আজকের বিদ্যুৎ বিভ্রাট ও কাজ লিখুন। কাজচলে সংঘর্ষহীন সময়সূচি বানিয়ে জেনারেটরের মোট সময় হিসাব করবে।",
+    title: "বিদ্যুৎ বিভ্রাটের সময় বুঝে কাজ সাজান।",
+    intro: "আজকের বিভ্রাট ও কাজ লিখুন। কোন কাজ কখন করা যাবে আর জেনারেটর কত মিনিট লাগবে, দেখে নিন।",
     planReady: "পরিকল্পনা প্রস্তুত",
-    planNeedsAttention: "একটি ছোট সংশোধন দরকার",
+    planNeedsAttention: "চিহ্নিত তথ্যগুলো দেখুন",
     generatorMetric: "জেনারেটরের মিনিট",
     cutsMetric: "বিদ্যুৎ বিভ্রাট",
     jobsScheduled: "টি কাজ পরিকল্পিত",
@@ -230,8 +236,9 @@ const copy = {
     invalidDuration: "সময়কাল ১ থেকে ১,৪৪০-এর মধ্যে পূর্ণ মিনিট হতে হবে।",
     saved: "এই ব্রাউজারে সংরক্ষিত",
     storageUnavailable: "ব্রাউজারে সংরক্ষণ করা যাচ্ছে না",
-    localNote: "কোনো অ্যাকাউন্ট, API বা সরকারি বিভ্রাটের দাবি নেই। পরিকল্পনা এই ডিভাইসেই থাকে।",
+    localNote: "বিভ্রাটের সময় আপনি দেবেন। এটি কাজের পরিকল্পনা, সরকারি বিদ্যুৎ সূচি নয়। সংরক্ষিত পরিকল্পনা এই ব্রাউজারেই থাকে।",
     outageDetail: "{start} থেকে {end} পর্যন্ত বিদ্যুৎ বিভ্রাট",
+    jobDetail: "{name}, {start} থেকে {end}",
     windowRemoved: "বিভ্রাটের সময় মুছে ফেলা হয়েছে।",
     jobRemoved: "কাজ মুছে ফেলা হয়েছে।",
     demoLoaded: "ডেমো পরিকল্পনা চালু হয়েছে।",
@@ -239,10 +246,10 @@ const copy = {
     restored: "পরিবর্তন ফিরিয়ে আনা হয়েছে।",
     adjustmentHint: "সময়কাল কমান অথবা বিদ্যুতের ধরন বদলান।",
     howTitle: "কাজচলে যেভাবে সিদ্ধান্ত নেয়",
-    howBody: "প্রথমে সবচেয়ে কঠিন শর্তের কাজ বসে। এরপর গ্রিড ছাড়াই চলতে পারে এমন কাজ দিয়ে বিভ্রাটের সময় ব্যবহার করা হয়।",
+    howBody: "গ্রিডের দীর্ঘ কাজগুলো আগে বসে। অন্য কাজ বিভ্রাটের সময় জায়গা পেলে সেখানে বসে, না হলে বাকি সময়ে।",
     ruleGrid: "গ্রিডের কাজ কখনো বিভ্রাটের সঙ্গে মিলবে না।",
-    ruleGenerator: "জেনারেটরের কাজ মোট জেনারেটর মিনিটে যোগ হয়।",
-    ruleNone: "বিদ্যুৎহীন কাজ বিভ্রাটের সময় শক্তি খরচ ছাড়াই চলতে পারে।",
+    ruleGenerator: "শুধু সময়সূচিতে জায়গা পাওয়া জেনারেটরের কাজ মোট মিনিটে যোগ হয়।",
+    ruleNone: "যে কাজে বিদ্যুৎ লাগে না, তা বিভ্রাটের সময়ও করা যায়।",
     jobAdded: "কাজ যোগ হয়েছে এবং পরিকল্পনা নতুন করে তৈরি হয়েছে।",
   },
 } as const;
@@ -282,10 +289,19 @@ function outageDetail(
     .replace("{end}", minuteToTime(end));
 }
 
-function TimelineBar({ job }: { job: PlannedJob }) {
+function TimelineBar({
+  job,
+  text,
+}: {
+  job: PlannedJob;
+  text: (typeof copy)[Locale];
+}) {
   const left = `${(job.start / MINUTES_PER_DAY) * 100}%`;
   const width = `${((job.end - job.start) / MINUTES_PER_DAY) * 100}%`;
-  const detail = `${job.name}: ${minuteToTime(job.start)} to ${minuteToTime(job.end)}`;
+  const detail = text.jobDetail
+    .replace("{start}", minuteToTime(job.start))
+    .replace("{end}", minuteToTime(job.end))
+    .replace("{name}", () => job.name);
   return (
     <div
       className={`job-bar job-bar--${job.powerNeed}`}
@@ -306,7 +322,7 @@ export function PlannerApp() {
   const [newName, setNewName] = useState("");
   const [newDuration, setNewDuration] = useState("60");
   const [newPowerNeed, setNewPowerNeed] = useState<PowerNeed>("grid");
-  const [formError, setFormError] = useState<string | null>(null);
+  const [formError, setFormError] = useState<FormError | null>(null);
   const [announcement, setAnnouncement] = useState("");
   const [hydrated, setHydrated] = useState(false);
   const [storageAvailable, setStorageAvailable] = useState(true);
@@ -357,6 +373,7 @@ export function PlannerApp() {
 
   const plan = useMemo(() => buildDayPlan(windows, jobs), [jobs, windows]);
   const invalidWindowCount = windows.filter((window) => windowError(window)).length;
+  const needsAttention = plan.unplaced.length > 0 || invalidWindowCount > 0 || jobs.some((job) => !job.name.trim());
   const hourMarks = Array.from({ length: 13 }, (_, index) => index * 2);
 
   function addWindow() {
@@ -382,7 +399,11 @@ export function PlannerApp() {
   }
 
   function removeWindow(window: OutageWindow) {
-    setUndoState({ windows: windows.map((item) => ({ ...item })), jobs, message: text.windowRemoved });
+    setUndoState({
+      windows: windows.map((item) => ({ ...item })),
+      jobs,
+      message: "windowRemoved",
+    });
     setWindows((current) => current.filter((item) => item.id !== window.id));
     setAnnouncement(text.windowRemoved);
   }
@@ -392,11 +413,11 @@ export function PlannerApp() {
     const name = newName.trim();
     const duration = Number(newDuration);
     if (!name) {
-      setFormError(text.nameRequired);
+      setFormError("name");
       return;
     }
     if (!isValidDuration(duration)) {
-      setFormError(text.durationInvalid);
+      setFormError("duration");
       return;
     }
     setJobs((current) => [
@@ -415,7 +436,11 @@ export function PlannerApp() {
   }
 
   function removeJob(job: Job) {
-    setUndoState({ windows, jobs: jobs.map((item) => ({ ...item })), message: text.jobRemoved });
+    setUndoState({
+      windows,
+      jobs: jobs.map((item) => ({ ...item })),
+      message: "jobRemoved",
+    });
     setJobs((current) => current.filter((item) => item.id !== job.id));
     setAnnouncement(text.jobRemoved);
   }
@@ -427,7 +452,7 @@ export function PlannerApp() {
       setUndoState({
         windows: windows.map((window) => ({ ...window })),
         jobs: jobs.map((job) => ({ ...job })),
-        message: text.demoLoaded,
+        message: "demoLoaded",
       });
     } else {
       setUndoState(null);
@@ -472,7 +497,7 @@ export function PlannerApp() {
               setLocale((current) => (current === "en" ? "bn" : "en"));
               setAnnouncement("");
             }}
-            aria-label={`Switch language to ${text.language}`}
+            aria-label={text.languageAction}
           >
             {text.language}
           </button>
@@ -481,7 +506,7 @@ export function PlannerApp() {
 
       {undoState ? (
         <div className="undo-toast" role="status">
-          <span>{undoState.message}</span>
+          <span>{text[undoState.message]}</span>
           <button className="text-button" type="button" onClick={restorePrevious}>
             {text.undo}
           </button>
@@ -494,11 +519,11 @@ export function PlannerApp() {
             <h1 id="page-title">{text.title}</h1>
             <p className="intro-text">{text.intro}</p>
           </div>
-          <div className={`plan-snapshot${plan.unplaced.length ? " plan-snapshot--attention" : ""}`} aria-label={text.planSummary}>
+          <div className={`plan-snapshot${needsAttention ? " plan-snapshot--attention" : ""}`} aria-label={text.planSummary}>
             <div className="snapshot-status" aria-live="polite">
               <span className="snapshot-status__mark" aria-hidden="true" />
               <div>
-                <strong>{plan.unplaced.length ? text.planNeedsAttention : text.planReady}</strong>
+                <strong>{needsAttention ? text.planNeedsAttention : text.planReady}</strong>
                 <span>{plan.planned.length} / {jobs.length} {text.jobsScheduled}</span>
               </div>
             </div>
@@ -590,7 +615,12 @@ export function PlannerApp() {
                     value={newName}
                     placeholder={text.jobNamePlaceholder}
                     maxLength={80}
-                    onChange={(event) => setNewName(event.target.value)}
+                    aria-invalid={formError === "name" || undefined}
+                    aria-describedby={formError === "name" ? "new-job-error" : undefined}
+                    onChange={(event) => {
+                      setNewName(event.target.value);
+                      if (formError === "name") setFormError(null);
+                    }}
                   />
                 </label>
                 <label className="field">
@@ -603,7 +633,12 @@ export function PlannerApp() {
                       max={MINUTES_PER_DAY}
                       step="1"
                       value={newDuration}
-                      onChange={(event) => setNewDuration(event.target.value)}
+                      aria-invalid={formError === "duration" || undefined}
+                      aria-describedby={formError === "duration" ? "new-job-error" : undefined}
+                      onChange={(event) => {
+                        setNewDuration(event.target.value);
+                        if (formError === "duration") setFormError(null);
+                      }}
                     />
                     <span>{text.minutesShort}</span>
                   </div>
@@ -620,7 +655,11 @@ export function PlannerApp() {
                   </select>
                   <span className="field-hint">{powerHint(newPowerNeed, text)}</span>
                 </label>
-                {formError ? <p className="form-error" role="alert">{formError}</p> : null}
+                {formError ? (
+                  <p className="form-error" id="new-job-error" role="alert">
+                    {formError === "name" ? text.nameRequired : text.durationInvalid}
+                  </p>
+                ) : null}
                 <button className="button button--primary" type="submit">
                   {text.addJob}
                 </button>
@@ -675,7 +714,9 @@ export function PlannerApp() {
                   <div className="lane lane--jobs">
                     <span className="lane-label">{text.workLane}</span>
                     <div className="lane-track lane-track--jobs">
-                      {plan.planned.map((job) => <TimelineBar job={job} key={job.id} />)}
+                      {plan.planned.map((job) => (
+                        <TimelineBar job={job} key={job.id} text={text} />
+                      ))}
                       {plan.planned.length === 0 ? (
                         <span className="lane-empty">{text.emptyTimeline}</span>
                       ) : null}

@@ -4,7 +4,7 @@
 
 - Team: GROCERYBOIX
 - Team ID: LSH26-T028
-- Team leader: Rajin Dash Khan, GitHub username `RajinDashKhan`
+- Team leader: Adib Ar Rahman Khan (Rajin Khan), GitHub username `rajin-khan`
 - This repository is the team's P01 project.
 - The sibling repository `lsh26-t028-p-2` is the team's P10 project.
 - Event start code: `LSH26-8490-C900`
@@ -20,7 +20,7 @@ The score is out of 100:
 - Difficulty credit: 15
 - Early submission: 10
 
-Each problem has four required items. The early-submission bonus unlocks only when at least three of four required items work for both projects. Working features come before bonus features. The build window is 6 PM to 10 PM, and the final submission deadline is 11:59 PM. Submit before 10 PM if the two-project minimum is ready.
+Each problem has four required items. The early-submission bonus unlocks only when at least three of four required items work for both projects. Working features come before bonus features. The build window is 6 PM to 10 PM Bangladesh time on 30 August 2026. The current [live arena](https://live.hackathon.lofistack.com/) lists midnight as the final submission deadline; early-bonus submissions must arrive before 10 PM. Older kit and Discord posts give conflicting submission cutoffs. Use the live arena and subsequent organizer clarifications, not the older wording. The rubric above matches the [orientation page](https://hackathon.lofistack.com/orientation-page).
 
 The team submits two public GitHub repositories through one leader-submitted form. The form requires each public repository URL, the exact 40-character commit SHA being judged, and a live URL. Keep both repositories public and preserve their history. AI tools are allowed. Disclose pre-event material, third-party material, and AI use. Never commit secrets.
 

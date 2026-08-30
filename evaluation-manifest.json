@@ -1,23 +1,23 @@
 {
   "team_id": "LSH26-T028",
   "problem_id": "P01",
-  "repository_name": "lsh26-t028-p-1",
+  "repository_name": "lsh26-t028-p01",
   "live_url": "",
   "demo_video_url_optional": "",
   "event_start_code": "LSH26-8490-C900",
   "repository_created_before_release": true,
   "pre_event_materials": [
-    "A private empty GitHub repository created before release; its first event-work commit contains EVENT.md.",
+    "Repository created before release. Its first commit at 17:55:45 Bangladesh time on 30 August 2026 contained only EVENT.md metadata (team, problem, start code, and repository mapping). No application source was present before 18:00. Original history is preserved; see EVENT.md.",
     "CurrentJabe was reviewed for Bangladesh outage-window terminology, overnight time handling, bilingual electricity copy, and accessible forms. KajChole uses a newly written scheduler, product model, brand, layout, and interface.",
     "The GridGenius university project was reviewed for Bangladesh energy-planning context and time-based data presentation. Its models, prediction API, RAG assistant, datasets, brand, and frontend code are not included.",
     "The pnpm lockfile and minimal Next.js, React, and TypeScript versions match the already-installed sibling submission and required zero new package downloads."
   ],
   "sample_data": {
     "loads_published_fixture": false,
-    "method": "Built-in demo state in components/planner-app.tsx",
-    "reset_instructions": "Open the app and select Load demo in the header. This restores two outage windows and four jobs without an account or network request."
+    "method": "Built-in demo plus manual entry of published or judge-supplied cases. Copy cuts.start/end and jobs.name/minutes/power into the corresponding controls as described in README.md. No JSON upload; shop_open/shop_close metadata are not applied to the 24-hour planning day.",
+    "reset_instructions": "Select Load demo in the header to restore two outage windows and four jobs (50 generator minutes). To enter another fixture case, remove existing cuts/jobs and enter its values using the forms."
   },
-  "problem_solving_method": "KajChole normalizes all outage windows onto a 1,440-minute day, splits windows that cross midnight, and merges overlaps. A deterministic longest-first scheduler protects grid-dependent jobs first, places generator and no-power jobs into outage time where possible, prevents job overlap, and reports work that cannot fit. Generator minutes are derived directly from the current job list, so edits and removals update the total immediately.",
+  "problem_solving_method": "Normalize outage windows onto a 1,440-minute day, split overnight windows, and merge overlaps. Place longer grid jobs first outside cuts, then generator and no-power jobs in cut windows where possible or other free time. Prevent overlaps and report jobs that cannot fit. Sum only scheduled generator-job durations after every input change.",
   "requirements": {
     "R1": {
       "status": "complete",
@@ -25,20 +25,20 @@
     },
     "R2": {
       "status": "complete",
-      "evidence": "The Add a job form and editable Job queue in components/planner-app.tsx capture name, duration, and grid, generator, or no-power need."
+      "evidence": "The Add a job form and editable Job inputs in components/planner-app.tsx capture name, duration, and grid, generator, or no-power need."
     },
     "R3": {
       "status": "complete",
-      "evidence": "buildDayPlan in lib/scheduler.ts produces non-overlapping placements and blocks grid jobs from outage intervals. The Today's power map and Completed plan render the result in components/planner-app.tsx."
+      "evidence": "buildDayPlan in lib/scheduler.ts produces non-overlapping placements and blocks grid jobs from outage intervals. Today's plan and Scheduled jobs render the result in components/planner-app.tsx."
     },
     "R4": {
       "status": "complete",
-      "evidence": "buildDayPlan calculates generatorMinutes from the current job list. The live Generator minutes metric in components/planner-app.tsx updates after every add, edit, or removal."
+      "evidence": "buildDayPlan calculates generatorMinutes from scheduled generator jobs only. The Generator minutes metric updates after every add, edit, or removal. tests/scheduler.test.ts includes an unplaced-generator regression case."
     }
   },
   "team_members": [
     {
-      "registered_name": "Rajin Dash Khan",
+      "registered_name": "Adib Ar Rahman Khan",
       "github_username": "rajin-khan",
       "major_contribution": "Team leadership, problem selection, prior-project handoff, product direction, repository setup, and final submission ownership.",
       "evidence_paths_or_commits": [
@@ -51,14 +51,14 @@
     {
       "registered_name": "Saumik Saha Kabbya",
       "github_username": "Kabbya04",
-      "major_contribution": "Contribution record pending team confirmation before the judged commit.",
-      "evidence_paths_or_commits": []
+      "major_contribution": "P01 saved-state validation, storage recovery, editing/accessibility fixes, interaction flow and form controls. Listed commits record Saumik as committer.",
+      "evidence_paths_or_commits": ["a1bf3b476b2330527b31724205cc039022664fa3", "63fdcb21b812160c1af89c26ce856887c3482beb", "e2ad115e3741e23d07fe3c654963ba17bdf3ef97"]
     },
     {
       "registered_name": "Samiyeel Alim Binaaf",
       "github_username": "Pronaaf2k",
-      "major_contribution": "Contribution record pending team confirmation before the judged commit.",
-      "evidence_paths_or_commits": []
+      "major_contribution": "Team-wide contribution in the sibling P10 submission: fixture validation, target-date advice, typography fallback and responsive chart. These are P10 contributions, not P01 source changes.",
+      "evidence_paths_or_commits": ["Sibling P10: 92d4c48c7bb8e652fd30d16ac24131919b998897", "Sibling P10: 22c38b22f717917a2749fa4dd9ac2667beeac0bd", "Sibling P10: ebfe902c2c361c6483f13f1f09a1d66b913745e5"]
     }
   ],
   "major_design_decisions": [
@@ -71,9 +71,10 @@
   "known_limitations": [
     "The planner creates one non-overlapping job stream and does not model parallel workers or machines.",
     "Jobs must finish within the 00:00 to 24:00 planning day; jobs that cannot fit are shown as unplaced.",
-    "Generator minutes represent requested generator-job duration, not fuel volume or cost.",
-    "The live URL must be inserted after deployment.",
-    "Saumik Saha Kabbya and Samiyeel Alim Binaaf need final P01 contribution evidence before submission."
+    "Generator minutes represent scheduled generator-job duration, not fuel volume or cost.",
+    "Published and judge-supplied cases require manual entry; there is no JSON upload and shop hours metadata do not limit placement.",
+    "Longest-first placement is deterministic but does not guarantee optimal packing.",
+    "The live URL must be inserted after deployment."
   ],
   "ai_tools_used": [
     {
@@ -83,5 +84,5 @@
     }
   ],
   "licenses_file": "LICENSES.md",
-  "declaration": "The information above is complete and truthful to the best of the team's knowledge. Pending member-contribution lines and the live URL will be replaced before the judged commit."
+  "declaration": "This record describes the local review state truthfully to the best of the team's knowledge. The live URL remains empty because deployment is pending. The team must add it and verify public access before final submission."
 }

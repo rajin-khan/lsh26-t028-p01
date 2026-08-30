@@ -31,7 +31,7 @@ Show the generator total changing from 50 to 80 immediately. Edit the new durati
 
 Point out that both grid jobs sit outside every red cut. The water pump uses generator time during a cut. Stock counting needs no power and fills another cut.
 
-Show the exact times in **Completed plan**. Explain that the algorithm protects longer grid jobs first, never overlaps jobs, and visibly reports anything that cannot fit.
+Show the exact times in **Scheduled jobs**. Explain that the algorithm protects longer grid jobs first, never overlaps jobs, and visibly reports anything that cannot fit.
 
 ### 2:00 to 2:20, edge case
 
@@ -41,8 +41,8 @@ Add **All-day grid run**, duration **1440**, power need **Grid power**. Show **N
 
 Switch to Bangla. Briefly narrow the browser or show a prepared mobile capture. The timeline scrolls inside its panel while the rest of the page stays fixed to the viewport.
 
-### 2:35 to 3:00, technical proof
+### 2:35 to 3:00, method and contributions
 
-Open the README requirement evidence and test list. State that KajChole is deterministic, local-first, free of API and database dependencies, and verified by scheduler tests, strict TypeScript, a production build, desktop/mobile browser QA, and a complete evaluation manifest.
+Open the README contribution table. Explain the interval scheduler and its tests. Credit Adib for product direction and P01 implementation review, Saumik for P01 validation and interaction improvements, and Samiyeel for the team's P10 fixture and interface work. Do not present P10 work as P01 code.
 
 Finish with the public repository URL, live URL, and exact judged commit SHA on screen.

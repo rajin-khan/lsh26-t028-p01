@@ -91,7 +91,7 @@ test("places grid jobs outside outage windows and keeps jobs separate", () => {
   }
 });
 
-test("counts generator duration immediately from the job list", () => {
+test("counts scheduled generator duration after every job change", () => {
   const baseJobs = [job("pump", 55, "generator"), job("email", 20, "none")];
   assert.equal(buildDayPlan([], baseJobs).generatorMinutes, 55);
   assert.equal(buildDayPlan([], [...baseJobs, job("welding", 35, "generator")]).generatorMinutes, 90);
@@ -112,6 +112,16 @@ test("counts only valid whole-minute generator durations", () => {
     ]).generatorMinutes,
     30,
   );
+});
+
+test("does not count a generator job that cannot fit in the plan", () => {
+  const plan = buildDayPlan([], [
+    job("all-day-grid", 1440, "grid"),
+    job("unplaced-generator", 30, "generator"),
+  ]);
+
+  assert.equal(plan.generatorMinutes, 0);
+  assert.equal(plan.unplaced[0]?.id, "unplaced-generator");
 });
 
 test("leaves a grid job unplaced when no continuous powered slot is long enough", () => {

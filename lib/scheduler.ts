@@ -158,12 +158,14 @@ export function buildDayPlan(windows: OutageWindow[], jobs: Job[]): DayPlan {
   placeGroup(jobs, "generator", outageIntervals, day, occupied, planned, unplaced);
   placeGroup(jobs, "none", outageIntervals, day, occupied, planned, unplaced);
 
+  const orderedPlan = planned.sort((a, b) => a.start - b.start || a.end - b.end);
+
   return {
     outageIntervals,
-    planned: planned.sort((a, b) => a.start - b.start || a.end - b.end),
+    planned: orderedPlan,
     unplaced,
-    generatorMinutes: jobs
-      .filter((job) => job.powerNeed === "generator" && isValidDuration(job.duration))
+    generatorMinutes: orderedPlan
+      .filter((job) => job.powerNeed === "generator")
       .reduce((total, job) => total + job.duration, 0),
   };
 }

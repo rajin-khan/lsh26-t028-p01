@@ -33,6 +33,5 @@ A job that cannot fit inside the remaining planning day without breaking its pow
 _Avoid_: Failed job, invalid job
 
 **Generator minutes**:
-The sum of the durations of all generator-powered jobs, whether or not they overlap an outage window.
+The sum of the durations of planned generator-powered jobs, whether or not they overlap an outage window. Unplaced jobs do not contribute to this total.
 _Avoid_: Fuel use, generator runtime estimate
-

@@ -13,7 +13,7 @@ Against the four required items, the existing product has one partial match and 
 | Automatically place jobs around outages | Missing | Interval and overlap concepts, but not the forecast algorithm itself |
 | Update generator minutes when jobs change | Missing | Reactive React patterns only |
 
-The required-flow match is therefore roughly one eighth to one quarter, depending on whether shared form and time-handling work is counted. The domain match is much higher: both products help people plan around electricity outages in Bangladesh.
+Both products deal with electricity outages in Bangladesh, but the job scheduler had to be written for P01.
 
 ## What we should reuse
 
@@ -41,7 +41,7 @@ GridGenius gives the project a credible Bangladesh energy-planning context and e
 
 ## Product decision
 
-Build KajChole as a local-first, single-page planning tool. All calculations run in the browser. The app ships with useful sample data, works offline after load, saves the current plan locally, and has no deployment-time service dependency.
+Build KajChole as a single-page planning tool. All calculations run in the browser. The app ships with sample data, saves the current plan locally when browser storage is available, and does not call an API for planning. Offline reload is not supported.
 
 The scheduler follows a visible, deterministic policy:
 
@@ -63,4 +63,3 @@ The main screen must make all four required items visible without navigation:
 - live generator minutes.
 
 Editing, removal, overnight windows, multiple windows, local persistence, sample reset, empty states, and unplaced-job explanations support UI, technical-quality, and demo marks after the four core items work.
-
