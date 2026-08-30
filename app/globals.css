@@ -9,10 +9,13 @@
   --line: #343b2e;
   --line-strong: #4b5542;
   --accent: #c8eb55;
+  --accent-bright: #d6f66d;
   --accent-ink: #171c0b;
   --outage: #ff735f;
   --generator: #e8b955;
   --none: #8c9784;
+  --error: #ff9a89;
+  --placeholder: #7f8877;
   --page-pad: clamp(1rem, 3vw, 3rem);
   --content-max: 1560px;
   --radius-panel: 18px;
@@ -189,7 +192,7 @@ select {
 
 .button,
 .language-button {
-  min-height: 2.55rem;
+  min-height: 2.75rem;
   padding: 0.62rem 0.9rem;
   border-radius: var(--radius-control);
   font-size: 0.78rem;
@@ -204,7 +207,7 @@ select {
 }
 
 .button--primary:hover {
-  background: #d6f66d;
+  background: var(--accent-bright);
 }
 
 .button--quiet,
@@ -233,20 +236,11 @@ main {
 
 .intro {
   display: grid;
-  min-height: 300px;
+  min-height: 270px;
   padding: clamp(2.5rem, 5vw, 5rem) 0 2.25rem;
-  grid-template-columns: minmax(0, 1.1fr) minmax(520px, 0.9fr);
+  grid-template-columns: minmax(0, 1.1fr) minmax(300px, 0.9fr);
   align-items: end;
   gap: clamp(2rem, 6vw, 7rem);
-}
-
-.kicker {
-  margin: 0 0 0.8rem;
-  color: var(--accent);
-  font-size: 0.72rem;
-  font-weight: 800;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
 }
 
 h1,
@@ -272,50 +266,71 @@ h1 {
   font-size: clamp(1rem, 1.4vw, 1.2rem);
 }
 
-.metrics {
+.plan-snapshot {
   display: grid;
-  grid-template-columns: 1.3fr 1fr 1fr;
+  padding: 1.15rem;
+  gap: 1.15rem;
   border: 1px solid var(--line);
   border-radius: var(--radius-panel);
   background: var(--surface);
-  overflow: hidden;
 }
 
-.metric {
+.snapshot-status {
   display: flex;
-  min-height: 142px;
-  padding: 1.15rem;
-  flex-direction: column;
-  justify-content: space-between;
-  border-left: 1px solid var(--line);
+  align-items: center;
+  gap: 0.7rem;
 }
 
-.metric:first-child {
-  border-left: 0;
+.snapshot-status__mark {
+  width: 0.7rem;
+  height: 0.7rem;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 0 5px color-mix(in srgb, var(--accent) 14%, transparent);
 }
 
-.metric span,
-.metric small {
-  color: var(--text-faint);
+.plan-snapshot--attention .snapshot-status__mark {
+  background: var(--outage);
+  box-shadow: 0 0 0 5px color-mix(in srgb, var(--outage) 14%, transparent);
+}
+
+.snapshot-status div {
+  display: grid;
+  gap: 0.15rem;
+}
+
+.snapshot-status strong {
+  font-size: 1rem;
+  letter-spacing: -0.025em;
+}
+
+.snapshot-status span,
+.snapshot-stat span {
+  color: var(--text-soft);
   font-size: 0.7rem;
   font-weight: 700;
 }
 
-.metric strong {
-  font-size: clamp(2.2rem, 4vw, 4.2rem);
+.snapshot-stats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.8rem;
+}
+
+.snapshot-stat {
+  display: grid;
+  padding-left: 0.85rem;
+  gap: 0.2rem;
+  border-left: 1px solid var(--line);
+}
+
+.snapshot-stat strong {
+  color: var(--text);
+  font-size: 1.8rem;
   font-variant-numeric: tabular-nums;
-  letter-spacing: -0.07em;
+  letter-spacing: -0.06em;
   line-height: 1;
-}
-
-.metric--primary {
-  color: var(--accent-ink);
-  background: var(--accent);
-}
-
-.metric--primary span,
-.metric--primary small {
-  color: color-mix(in srgb, var(--accent-ink) 70%, transparent);
 }
 
 .workspace {
@@ -386,11 +401,14 @@ h1 {
 }
 
 .text-button {
-  padding: 0.25rem;
+  min-height: 2.75rem;
+  padding: 0.25rem 0.4rem;
+  align-items: center;
   color: var(--accent);
   background: transparent;
   font-size: 0.72rem;
   font-weight: 800;
+  display: inline-flex;
 }
 
 .text-button:hover {
@@ -452,7 +470,7 @@ select {
 }
 
 input::placeholder {
-  color: #7f8877;
+  color: var(--placeholder);
 }
 
 input:hover,
@@ -469,8 +487,8 @@ input[type="number"] {
 
 .icon-button {
   display: grid;
-  width: 2.25rem;
-  height: 2.25rem;
+  width: 2.75rem;
+  height: 2.75rem;
   padding: 0;
   place-items: center;
   color: var(--text-faint);
@@ -485,10 +503,16 @@ input[type="number"] {
 }
 
 .field-error,
-.form-error {
+.form-error,
+.field-hint {
   margin: 0;
-  color: #ff9a89;
+  color: var(--error);
   font-size: 0.7rem;
+}
+
+.field-hint {
+  color: var(--text-faint);
+  font-size: 0.68rem;
 }
 
 .field-error {
@@ -786,7 +810,7 @@ input[type="number"] {
 .job-editor__error {
   grid-column: 3 / -1;
   margin: 0;
-  color: #ff9a89;
+  color: var(--error);
   font-size: 0.68rem;
 }
 
@@ -847,7 +871,7 @@ input[type="number"] {
 }
 
 .attention-block h2 {
-  color: #ff9a89;
+  color: var(--error);
 }
 
 .attention-item {
@@ -864,6 +888,37 @@ input[type="number"] {
 
 .attention-item span {
   color: var(--text-soft);
+}
+
+.attention-item small {
+  color: var(--text-faint);
+  font-size: 0.68rem;
+}
+
+.undo-toast {
+  position: fixed;
+  z-index: 15;
+  top: calc(var(--header-height) + 0.75rem);
+  right: var(--page-pad);
+  display: flex;
+  max-width: min(360px, calc(100vw - var(--page-pad) * 2));
+  padding: 0.7rem 0.8rem 0.7rem 0.95rem;
+  align-items: center;
+  gap: 0.8rem;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-control);
+  background: var(--surface-raised);
+  box-shadow: 0 10px 30px rgb(0 0 0 / 22%);
+  color: var(--text);
+  font-size: 0.75rem;
+}
+
+.undo-toast span {
+  flex: 1 1 auto;
+}
+
+.undo-toast .text-button {
+  flex: 0 0 auto;
 }
 
 .method-block ol {
@@ -969,8 +1024,7 @@ input[type="number"] {
     grid-template-columns: 1fr auto;
   }
 
-  .header-descriptor,
-  .button--quiet {
+  .header-descriptor {
     display: none;
   }
 
@@ -1026,7 +1080,6 @@ input[type="number"] {
   }
 
   .language-button {
-    min-height: 2.25rem;
     padding: 0.48rem 0.65rem;
   }
 
@@ -1034,36 +1087,33 @@ input[type="number"] {
     padding-top: 2.2rem;
   }
 
-  .kicker {
-    letter-spacing: 0.04em;
-  }
-
   h1 {
-    font-size: clamp(2.65rem, 14vw, 4.4rem);
+    font-size: clamp(2.35rem, 12vw, 4rem);
   }
 
-  .metrics {
-    grid-template-columns: 1.2fr 1fr;
+  .intro {
+    padding-top: 1.8rem;
+    padding-bottom: 1.6rem;
+    gap: 1.4rem;
   }
 
-  .metric {
-    min-height: 118px;
+  .intro-text {
+    font-size: 0.95rem;
   }
 
-  .metric:last-child {
-    grid-column: 1 / -1;
-    min-height: 92px;
-    border-top: 1px solid var(--line);
-    border-left: 0;
+  .plan-snapshot {
+    padding: 0.95rem;
+    gap: 0.95rem;
   }
 
-  .panel-heading--row,
-  .control-heading {
-    align-items: flex-start;
+  .snapshot-stat strong {
+    font-size: 1.55rem;
   }
 
   .legend {
-    display: none;
+    max-width: none;
+    justify-content: flex-start;
+    margin-top: 0.7rem;
   }
 
   .window-editor {
