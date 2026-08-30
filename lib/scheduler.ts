@@ -11,6 +11,10 @@ import type {
 export const MINUTES_PER_DAY = 24 * 60;
 const TIME_RE = /^([01]\d|2[0-3]):([0-5]\d)$/;
 
+export function isValidDuration(value: number): boolean {
+  return Number.isInteger(value) && value >= 1 && value <= MINUTES_PER_DAY;
+}
+
 export function timeToMinute(value: string): number | null {
   const match = TIME_RE.exec(value);
   if (!match) return null;
@@ -120,7 +124,7 @@ function placeGroup(
   unplaced: UnplacedJob[],
 ): void {
   for (const job of stableLongestFirst(jobs.filter((candidate) => candidate.powerNeed === powerNeed))) {
-    if (!Number.isInteger(job.duration) || job.duration < 1 || job.duration > MINUTES_PER_DAY) {
+    if (!isValidDuration(job.duration)) {
       unplaced.push({ ...job, reason: "invalid_duration" });
       continue;
     }
@@ -159,8 +163,8 @@ export function buildDayPlan(windows: OutageWindow[], jobs: Job[]): DayPlan {
     planned: planned.sort((a, b) => a.start - b.start || a.end - b.end),
     unplaced,
     generatorMinutes: jobs
-      .filter((job) => job.powerNeed === "generator" && Number.isFinite(job.duration))
-      .reduce((total, job) => total + Math.max(0, job.duration), 0),
+      .filter((job) => job.powerNeed === "generator" && isValidDuration(job.duration))
+      .reduce((total, job) => total + job.duration, 0),
   };
 }
 

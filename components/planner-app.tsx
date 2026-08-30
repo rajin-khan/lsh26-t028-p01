@@ -4,6 +4,7 @@ import { FormEvent, useEffect, useMemo, useState } from "react";
 
 import {
   buildDayPlan,
+  isValidDuration,
   MINUTES_PER_DAY,
   minuteToTime,
   windowError,
@@ -32,6 +33,51 @@ const SAMPLE_STATE: PlannerState = {
   ],
 };
 
+function isPowerNeed(value: unknown): value is PowerNeed {
+  return value === "grid" || value === "generator" || value === "none";
+}
+
+function isStoredWindow(value: unknown): value is OutageWindow {
+  if (!value || typeof value !== "object") return false;
+  const candidate = value as Record<string, unknown>;
+  return (
+    typeof candidate.id === "string" &&
+    candidate.id.length > 0 &&
+    typeof candidate.start === "string" &&
+    typeof candidate.end === "string"
+  );
+}
+
+function isStoredJob(value: unknown): value is Job {
+  if (!value || typeof value !== "object") return false;
+  const candidate = value as Record<string, unknown>;
+  return (
+    typeof candidate.id === "string" &&
+    candidate.id.length > 0 &&
+    typeof candidate.name === "string" &&
+    typeof candidate.duration === "number" &&
+    Number.isFinite(candidate.duration) &&
+    isPowerNeed(candidate.powerNeed)
+  );
+}
+
+function parseStoredState(raw: string): PlannerState | null {
+  try {
+    const parsed = JSON.parse(raw) as Partial<PlannerState>;
+    if (
+      !Array.isArray(parsed.windows) ||
+      !Array.isArray(parsed.jobs) ||
+      !parsed.windows.every(isStoredWindow) ||
+      !parsed.jobs.every(isStoredJob)
+    ) {
+      return null;
+    }
+    return { windows: parsed.windows, jobs: parsed.jobs };
+  } catch {
+    return null;
+  }
+}
+
 const copy = {
   en: {
     skip: "Skip to planner",
@@ -47,6 +93,10 @@ const copy = {
     generatorNote: "Updates with every job change",
     plannedMetric: "Jobs placed",
     cutsMetric: "Power cuts",
+    planSummary: "Plan summary",
+    timelineLegend: "Timeline legend",
+    scrollableTimeline: "Scrollable 24-hour timeline",
+    scheduleResults: "Schedule results",
     total: "total",
     map24: "24-hour map",
     invalid: "invalid",
@@ -93,7 +143,9 @@ const copy = {
     dayFull: "The job cannot fit before 24:00.",
     invalidDuration: "The duration must be a whole number from 1 to 1,440.",
     saved: "Saved in this browser",
+    storageUnavailable: "Browser saving unavailable",
     localNote: "No account, API, or official outage claim. Your plan stays on this device.",
+    outageDetail: "Power cut from {start} to {end}",
     howTitle: "How KajChole decides",
     howBody: "It schedules the hardest constraint first, then fills outage time with work that can continue without the grid.",
     ruleGrid: "Grid jobs never overlap a cut.",
@@ -116,6 +168,10 @@ const copy = {
     generatorNote: "কাজ বদলালেই হিসাব বদলায়",
     plannedMetric: "পরিকল্পিত কাজ",
     cutsMetric: "বিদ্যুৎ বিভ্রাট",
+    planSummary: "পরিকল্পনার সারাংশ",
+    timelineLegend: "সময়ের মাপের পরিচয়",
+    scrollableTimeline: "স্ক্রল করা যায় এমন ২৪ ঘণ্টার সময়রেখা",
+    scheduleResults: "পরিকল্পনার ফলাফল",
     total: "মোট",
     map24: "২৪ ঘণ্টার মানচিত্র",
     invalid: "সঠিক নয়",
@@ -162,7 +218,9 @@ const copy = {
     dayFull: "কাজটি রাত ২৪:০০-এর আগে শেষ করা সম্ভব নয়।",
     invalidDuration: "সময়কাল ১ থেকে ১,৪৪০-এর মধ্যে পূর্ণ মিনিট হতে হবে।",
     saved: "এই ব্রাউজারে সংরক্ষিত",
+    storageUnavailable: "ব্রাউজারে সংরক্ষণ করা যাচ্ছে না",
     localNote: "কোনো অ্যাকাউন্ট, API বা সরকারি বিভ্রাটের দাবি নেই। পরিকল্পনা এই ডিভাইসেই থাকে।",
+    outageDetail: "{start} থেকে {end} পর্যন্ত বিদ্যুৎ বিভ্রাট",
     howTitle: "কাজচলে যেভাবে সিদ্ধান্ত নেয়",
     howBody: "প্রথমে সবচেয়ে কঠিন শর্তের কাজ বসে। এরপর গ্রিড ছাড়াই চলতে পারে এমন কাজ দিয়ে বিভ্রাটের সময় ব্যবহার করা হয়।",
     ruleGrid: "গ্রিডের কাজ কখনো বিভ্রাটের সঙ্গে মিলবে না।",
@@ -192,6 +250,16 @@ function unplacedReason(job: UnplacedJob, text: (typeof copy)[Locale]): string {
   return text.invalidDuration;
 }
 
+function outageDetail(
+  start: number,
+  end: number,
+  text: (typeof copy)[Locale],
+): string {
+  return text.outageDetail
+    .replace("{start}", minuteToTime(start))
+    .replace("{end}", minuteToTime(end));
+}
+
 function TimelineBar({ job }: { job: PlannedJob }) {
   const left = `${(job.start / MINUTES_PER_DAY) * 100}%`;
   const width = `${((job.end - job.start) / MINUTES_PER_DAY) * 100}%`;
@@ -201,6 +269,7 @@ function TimelineBar({ job }: { job: PlannedJob }) {
       className={`job-bar job-bar--${job.powerNeed}`}
       style={{ left, width }}
       title={detail}
+      role="img"
       aria-label={detail}
     >
       <span>{job.name}</span>
@@ -218,20 +287,32 @@ export function PlannerApp() {
   const [formError, setFormError] = useState<string | null>(null);
   const [announcement, setAnnouncement] = useState("");
   const [hydrated, setHydrated] = useState(false);
+  const [storageAvailable, setStorageAvailable] = useState(true);
   const text = copy[locale];
 
   useEffect(() => {
     try {
-      const stored = localStorage.getItem(STORAGE_KEY);
+      const stored = window.localStorage.getItem(STORAGE_KEY);
       if (stored) {
-        const parsed = JSON.parse(stored) as Partial<PlannerState>;
-        if (Array.isArray(parsed.windows) && Array.isArray(parsed.jobs)) {
+        const parsed = parseStoredState(stored);
+        if (parsed) {
           setWindows(parsed.windows);
           setJobs(parsed.jobs);
+        } else {
+          try {
+            window.localStorage.removeItem(STORAGE_KEY);
+          } catch {
+            setStorageAvailable(false);
+          }
         }
       }
     } catch {
-      localStorage.removeItem(STORAGE_KEY);
+      setStorageAvailable(false);
+      try {
+        window.localStorage.removeItem(STORAGE_KEY);
+      } catch {
+        // Storage is optional. Keep the planner usable in memory.
+      }
     } finally {
       setHydrated(true);
     }
@@ -239,7 +320,12 @@ export function PlannerApp() {
 
   useEffect(() => {
     if (!hydrated) return;
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({ windows, jobs }));
+    try {
+      window.localStorage.setItem(STORAGE_KEY, JSON.stringify({ windows, jobs }));
+      setStorageAvailable(true);
+    } catch {
+      setStorageAvailable(false);
+    }
   }, [hydrated, jobs, windows]);
 
   useEffect(() => {
@@ -278,7 +364,7 @@ export function PlannerApp() {
       setFormError(text.nameRequired);
       return;
     }
-    if (!Number.isInteger(duration) || duration < 1 || duration > MINUTES_PER_DAY) {
+    if (!isValidDuration(duration)) {
       setFormError(text.durationInvalid);
       return;
     }
@@ -324,7 +410,10 @@ export function PlannerApp() {
           <button
             className="language-button"
             type="button"
-            onClick={() => setLocale((current) => (current === "en" ? "bn" : "en"))}
+            onClick={() => {
+              setLocale((current) => (current === "en" ? "bn" : "en"));
+              setAnnouncement("");
+            }}
             aria-label={`Switch language to ${text.language}`}
           >
             {text.language}
@@ -339,7 +428,7 @@ export function PlannerApp() {
             <h1 id="page-title">{text.title}</h1>
             <p className="intro-text">{text.intro}</p>
           </div>
-          <div className="metrics" aria-label="Plan summary">
+          <div className="metrics" aria-label={text.planSummary}>
             <div className="metric metric--primary" aria-live="polite">
               <span>{text.generatorMetric}</span>
               <strong>{plan.generatorMinutes}</strong>
@@ -388,6 +477,8 @@ export function PlannerApp() {
                         <input
                           type="time"
                           value={window.start}
+                          aria-invalid={Boolean(error) || undefined}
+                          aria-describedby={error ? `window-error-${window.id}` : undefined}
                           onChange={(event) => updateWindow(window.id, "start", event.target.value)}
                         />
                       </label>
@@ -396,6 +487,8 @@ export function PlannerApp() {
                         <input
                           type="time"
                           value={window.end}
+                          aria-invalid={Boolean(error) || undefined}
+                          aria-describedby={error ? `window-error-${window.id}` : undefined}
                           onChange={(event) => updateWindow(window.id, "end", event.target.value)}
                         />
                       </label>
@@ -407,7 +500,11 @@ export function PlannerApp() {
                       >
                         ×
                       </button>
-                      {error ? <p className="field-error">{error}</p> : null}
+                      {error ? (
+                        <p className="field-error" id={`window-error-${window.id}`}>
+                          {error}
+                        </p>
+                      ) : null}
                     </div>
                   );
                 })}
@@ -469,14 +566,14 @@ export function PlannerApp() {
                   <h2 id="timeline-title">{text.timelineTitle}</h2>
                   <p>{text.timelineNote}</p>
                 </div>
-                <div className="legend" aria-label="Timeline legend">
+                <div className="legend" aria-label={text.timelineLegend}>
                   <span className="legend-item legend-item--cut">{text.outageLane}</span>
                   <span className="legend-item legend-item--grid">{text.grid}</span>
                   <span className="legend-item legend-item--generator">{text.generator}</span>
                   <span className="legend-item legend-item--none">{text.none}</span>
                 </div>
               </div>
-              <div className="timeline-scroll" tabIndex={0} aria-label="Scrollable 24-hour timeline">
+              <div className="timeline-scroll" tabIndex={0} aria-label={text.scrollableTimeline}>
                 <div className="timeline">
                   <div className="time-axis" aria-hidden="true">
                     {hourMarks.map((hour) => (
@@ -496,7 +593,9 @@ export function PlannerApp() {
                             left: `${(interval.start / MINUTES_PER_DAY) * 100}%`,
                             width: `${((interval.end - interval.start) / MINUTES_PER_DAY) * 100}%`,
                           }}
-                          title={`${minuteToTime(interval.start)} to ${minuteToTime(interval.end)}`}
+                          title={outageDetail(interval.start, interval.end, text)}
+                          role="img"
+                          aria-label={outageDetail(interval.start, interval.end, text)}
                         />
                       ))}
                       {plan.outageIntervals.length === 0 ? (
@@ -523,56 +622,77 @@ export function PlannerApp() {
                   <h2 id="queue-title">{text.queueTitle}</h2>
                   <p>{text.queueNote}</p>
                 </div>
-                <span className="saved-state">{text.saved}</span>
+                <span className="saved-state">
+                  {storageAvailable ? text.saved : text.storageUnavailable}
+                </span>
               </div>
               {jobs.length ? (
                 <div className="job-edit-list">
-                  {jobs.map((job, index) => (
-                    <div className="job-editor" key={job.id}>
-                      <span className={`power-key power-key--${job.powerNeed}`} aria-hidden="true" />
-                      <span className="item-index" aria-hidden="true">{String(index + 1).padStart(2, "0")}</span>
-                      <label className="sr-only" htmlFor={`job-name-${job.id}`}>{text.jobName}</label>
-                      <input
-                        id={`job-name-${job.id}`}
-                        className="job-editor__name"
-                        type="text"
-                        maxLength={80}
-                        value={job.name}
-                        onChange={(event) => updateJob(job.id, { name: event.target.value })}
-                      />
-                      <label className="sr-only" htmlFor={`job-duration-${job.id}`}>{text.duration}</label>
-                      <div className="job-editor__duration">
+                  {jobs.map((job, index) => {
+                    const nameError = !job.name.trim();
+                    const durationError = !isValidDuration(job.duration);
+                    return (
+                      <div className="job-editor" key={job.id}>
+                        <span className={`power-key power-key--${job.powerNeed}`} aria-hidden="true" />
+                        <span className="item-index" aria-hidden="true">{String(index + 1).padStart(2, "0")}</span>
+                        <label className="sr-only" htmlFor={`job-name-${job.id}`}>{text.jobName}</label>
                         <input
-                          id={`job-duration-${job.id}`}
-                          type="number"
-                          inputMode="numeric"
-                          min="1"
-                          max={MINUTES_PER_DAY}
-                          value={job.duration || ""}
-                          onChange={(event) => updateJob(job.id, { duration: Number(event.target.value) })}
+                          id={`job-name-${job.id}`}
+                          className="job-editor__name"
+                          type="text"
+                          maxLength={80}
+                          value={job.name}
+                          aria-invalid={nameError || undefined}
+                          aria-describedby={nameError ? `job-name-error-${job.id}` : undefined}
+                          onChange={(event) => updateJob(job.id, { name: event.target.value })}
                         />
-                        <span>{text.minutesShort}</span>
+                        <label className="sr-only" htmlFor={`job-duration-${job.id}`}>{text.duration}</label>
+                        <div className="job-editor__duration">
+                          <input
+                            id={`job-duration-${job.id}`}
+                            type="number"
+                            inputMode="numeric"
+                            min="1"
+                            max={MINUTES_PER_DAY}
+                            step="1"
+                            value={Number.isFinite(job.duration) ? job.duration : ""}
+                            aria-invalid={durationError || undefined}
+                            aria-describedby={durationError ? `job-duration-error-${job.id}` : undefined}
+                            onChange={(event) => updateJob(job.id, { duration: Number(event.target.value) })}
+                          />
+                          <span>{text.minutesShort}</span>
+                        </div>
+                        <label className="sr-only" htmlFor={`job-power-${job.id}`}>{text.powerNeed}</label>
+                        <select
+                          id={`job-power-${job.id}`}
+                          value={job.powerNeed}
+                          onChange={(event) => updateJob(job.id, { powerNeed: event.target.value as PowerNeed })}
+                        >
+                          <option value="grid">{text.grid}</option>
+                          <option value="generator">{text.generator}</option>
+                          <option value="none">{text.none}</option>
+                        </select>
+                        <button
+                          className="icon-button"
+                          type="button"
+                          aria-label={`${text.removeJob}: ${job.name || text.job}`}
+                          onClick={() => setJobs((current) => current.filter((item) => item.id !== job.id))}
+                        >
+                          ×
+                        </button>
+                        {nameError ? (
+                          <p className="job-editor__error" id={`job-name-error-${job.id}`}>
+                            {text.nameRequired}
+                          </p>
+                        ) : null}
+                        {durationError ? (
+                          <p className="job-editor__error" id={`job-duration-error-${job.id}`}>
+                            {text.durationInvalid}
+                          </p>
+                        ) : null}
                       </div>
-                      <label className="sr-only" htmlFor={`job-power-${job.id}`}>{text.powerNeed}</label>
-                      <select
-                        id={`job-power-${job.id}`}
-                        value={job.powerNeed}
-                        onChange={(event) => updateJob(job.id, { powerNeed: event.target.value as PowerNeed })}
-                      >
-                        <option value="grid">{text.grid}</option>
-                        <option value="generator">{text.generator}</option>
-                        <option value="none">{text.none}</option>
-                      </select>
-                      <button
-                        className="icon-button"
-                        type="button"
-                        aria-label={`${text.removeJob}: ${job.name}`}
-                        onClick={() => setJobs((current) => current.filter((item) => item.id !== job.id))}
-                      >
-                        ×
-                      </button>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               ) : (
                 <p className="empty-note empty-note--large">{text.emptyQueue}</p>
@@ -581,7 +701,7 @@ export function PlannerApp() {
           </div>
         </div>
 
-        <section className="results-grid" aria-label="Schedule results">
+        <section className="results-grid" aria-label={text.scheduleResults}>
           <div className="schedule-panel">
             <div className="panel-heading">
               <h2>{text.scheduleTitle}</h2>

@@ -3,6 +3,7 @@ import test from "node:test";
 
 import {
   buildDayPlan,
+  isValidDuration,
   intervalsOverlap,
   minuteToTime,
   normalizeOutageWindows,
@@ -95,6 +96,22 @@ test("counts generator duration immediately from the job list", () => {
   assert.equal(buildDayPlan([], baseJobs).generatorMinutes, 55);
   assert.equal(buildDayPlan([], [...baseJobs, job("welding", 35, "generator")]).generatorMinutes, 90);
   assert.equal(buildDayPlan([], baseJobs.slice(1)).generatorMinutes, 0);
+});
+
+test("counts only valid whole-minute generator durations", () => {
+  assert.equal(isValidDuration(1), true);
+  assert.equal(isValidDuration(1440), true);
+  assert.equal(isValidDuration(30.5), false);
+  assert.equal(isValidDuration(0), false);
+  assert.equal(isValidDuration(1441), false);
+  assert.equal(
+    buildDayPlan([], [
+      job("valid", 30, "generator"),
+      job("fractional", 30.5, "generator"),
+      job("too-long", 1441, "generator"),
+    ]).generatorMinutes,
+    30,
+  );
 });
 
 test("leaves a grid job unplaced when no continuous powered slot is long enough", () => {

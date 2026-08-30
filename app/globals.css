@@ -783,6 +783,13 @@ input[type="number"] {
   font-weight: 720;
 }
 
+.job-editor__error {
+  grid-column: 3 / -1;
+  margin: 0;
+  color: #ff9a89;
+  font-size: 0.68rem;
+}
+
 .results-grid {
   display: grid;
   margin-top: 1rem;
@@ -1076,6 +1083,10 @@ input[type="number"] {
 
   .job-editor {
     grid-template-columns: 4px minmax(0, 1fr) 2.25rem;
+  }
+
+  .job-editor__error {
+    grid-column: 2 / -1;
   }
 
   .job-editor .item-index {
